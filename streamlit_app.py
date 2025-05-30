@@ -1,38 +1,38 @@
-import streamlit as st
 import random
+import re
 
-st.set_page_config(page_title="Yoda Translator", page_icon="🛸")
-
-# --- Title
-st.title("🛸 Yoda Translator")
-st.write("Type a sentence, you must. Translate to Yoda-speak, we will.")
-
-# --- Input box
-user_input = st.text_input("Your sentence:", placeholder="Enter a sentence...")
-
-# --- Yoda translator logic
 def yoda_translate(sentence):
-    words = sentence.strip('.!?').split()
+    sentence = sentence.strip().strip('.!?')
+    words = sentence.split()
+
     if len(words) < 4:
-        return sentence + " Hmmm."
+        return sentence + ", hmm."
 
-    split_point = len(words) // 2
-    part1 = words[split_point:]
-    part2 = words[:split_point]
+    # Lowercase first word if needed (to prevent awkward capitalization mid-sentence)
+    if words[0][0].islower():
+        words[0] = words[0].capitalize()
 
-    templates = [
-        f"{' '.join(part1)}, {' '.join(part2)}.",
-        f"{' '.join(part1)}... {' '.join(part2)}, yes.",
-        f"{' '.join(part2)}, {' '.join(part1)}. Hmmm.",
-        f"Hmm. {' '.join(part1)} — {' '.join(part2)}, strong with the Force you are.",
+    # Try a smarter split based on sentence length
+    n = len(words)
+    if n >= 8:
+        split1 = n // 3
+        split2 = 2 * n // 3
+        parts = [words[:split1], words[split1:split2], words[split2:]]
+    else:
+        split = n // 2
+        parts = [words[:split], words[split:]]
+
+    # Reformat with Yoda-style phrasing
+    yoda_phrases = [
+        f"{' '.join(parts[-1])}, {' '.join(parts[0])} {' '.join(parts[1])}, hmm.",
+        f"{' '.join(parts[-1])} — {' '.join(parts[0])}, {' '.join(parts[1])}. Strong in the Force, you are.",
+        f"{' '.join(parts[1])}, {' '.join(parts[0])} {' '.join(parts[-1])}. Mmm.",
+        f"To you, {' '.join(parts[0])} {' '.join(parts[1])}, {' '.join(parts[-1])}. Yes.",
     ]
 
-    return random.choice(templates)
+    result = random.choice(yoda_phrases)
 
-# --- Display output
-if user_input:
-    yoda_output = yoda_translate(user_input)
-    st.markdown(f"**Yoda says:**\n\n> _{yoda_output}_")
+    # Ensure result is capitalized correctly
+    result = result[0].upper() + result[1:]
 
-# --- Footer
-st.caption("Made with 🧠 and ☕ by you.")
+    return result
